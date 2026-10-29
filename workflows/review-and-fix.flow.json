@@ -1,0 +1,121 @@
+{
+  "schemaVersion": "1",
+  "meta": {
+    "name": "Review and Fix",
+    "description": "Unattended: a scope-resolution step pins the repository, base, head, changed files and a work directory (a worktree on the head when the checkout is on another branch). Then six reviewers (correctness, security, architecture, test coverage, UX & accessibility, performance) review the change together, and a fixer fixes or declines every blocker and major finding. The review runs again after each fix until none is open, at most 10 rounds."
+  },
+  "nodes": [
+    {
+      "id": "759f1137-c402-40c1-8589-137ce28ad5bd",
+      "kind": "trigger",
+      "title": "Start",
+      "description": "Describe what to review: a branch, a pull request, or the changes since a commit. A chat agent can also start it with startWorkflowRun.",
+      "sources": ["chat-prompt", "chat-agent-tool"],
+      "position": { "x": 0, "y": 0 },
+      "nextStep": "e3261a0c-e371-49e4-8438-6bfa66ce85b2"
+    },
+    {
+      "id": "f1a8c5e7-2d3b-4e9a-b6c4-7e0d9f2a5b13",
+      "kind": "trigger",
+      "title": "Start from another workflow",
+      "description": "Run as a step of another workflow, e.g. Implement Code Fix.",
+      "sources": ["workflow-step"],
+      "position": { "x": 320, "y": 0 },
+      "nextStep": "e3261a0c-e371-49e4-8438-6bfa66ce85b2"
+    },
+    {
+      "id": "e3261a0c-e371-49e4-8438-6bfa66ce85b2",
+      "kind": "work",
+      "title": "Resolve scope",
+      "interaction": "automatic",
+      "agent": "Scope Resolver",
+      "prompt": "Resolve the request that started this workflow to an exact repository, branch, base, head SHA, changed-file list and work directory, creating a worktree on the head when the checkout is on another branch. Do not review or edit anything.",
+      "position": { "x": 0, "y": 140 },
+      "nextStep": "1d498330-cce1-448a-964b-8df76e495841",
+      "skippable": false,
+      "toolPermissions": { "allow": ["shellTool"] }
+    },
+    {
+      "id": "1d498330-cce1-448a-964b-8df76e495841",
+      "kind": "review",
+      "title": "Review",
+      "description": "Six reviewers in parallel. While a blocker or major finding is open, Fix findings fixes them and the review runs again, at most 10 rounds.",
+      "interaction": "automatic",
+      "reviewers": [
+        {
+          "agent": "Correctness Reviewer",
+          "prompt": "Review the scope the \"Resolve scope\" step pinned: work in its Work directory (the repository, or a worktree on the pull request head when the checkout is on another branch), and run git and read files there, not in the repository directory when they differ. Read the change with `git -C <work directory> diff <merge-base SHA>`, with no head SHA, so the fixer's changes are included. Ignore any \"Files that changed in the project root\" line; it describes the workspace repository, not the code under review.",
+          "toolPermissions": { "allow": ["shellTool"] }
+        },
+        {
+          "agent": "Security Reviewer",
+          "prompt": "Review the scope the \"Resolve scope\" step pinned: work in its Work directory (the repository, or a worktree on the pull request head when the checkout is on another branch), and run git and read files there, not in the repository directory when they differ. Read the change with `git -C <work directory> diff <merge-base SHA>`, with no head SHA, so the fixer's changes are included. Ignore any \"Files that changed in the project root\" line; it describes the workspace repository, not the code under review.",
+          "toolPermissions": { "allow": ["shellTool"] }
+        },
+        {
+          "agent": "Architecture Reviewer",
+          "prompt": "Review the scope the \"Resolve scope\" step pinned: work in its Work directory (the repository, or a worktree on the pull request head when the checkout is on another branch), and run git and read files there, not in the repository directory when they differ. Read the change with `git -C <work directory> diff <merge-base SHA>`, with no head SHA, so the fixer's changes are included. Ignore any \"Files that changed in the project root\" line; it describes the workspace repository, not the code under review.",
+          "toolPermissions": { "allow": ["shellTool"] }
+        },
+        {
+          "agent": "Test Coverage Reviewer",
+          "prompt": "Review the scope the \"Resolve scope\" step pinned: work in its Work directory (the repository, or a worktree on the pull request head when the checkout is on another branch), and run git and read files there, not in the repository directory when they differ. Read the change with `git -C <work directory> diff <merge-base SHA>`, with no head SHA, so the fixer's changes are included. Ignore any \"Files that changed in the project root\" line; it describes the workspace repository, not the code under review.",
+          "toolPermissions": { "allow": ["shellTool"] }
+        },
+        {
+          "agent": "UX & Accessibility Reviewer",
+          "prompt": "Review the scope the \"Resolve scope\" step pinned: work in its Work directory (the repository, or a worktree on the pull request head when the checkout is on another branch), and run git and read files there, not in the repository directory when they differ. Read the change with `git -C <work directory> diff <merge-base SHA>`, with no head SHA, so the fixer's changes are included. Ignore any \"Files that changed in the project root\" line; it describes the workspace repository, not the code under review.",
+          "toolPermissions": { "allow": ["shellTool"] }
+        },
+        {
+          "agent": "Performance Reviewer",
+          "prompt": "Review the scope the \"Resolve scope\" step pinned: work in its Work directory (the repository, or a worktree on the pull request head when the checkout is on another branch), and run git and read files there, not in the repository directory when they differ. Read the change with `git -C <work directory> diff <merge-base SHA>`, with no head SHA, so the fixer's changes are included. Ignore any \"Files that changed in the project root\" line; it describes the workspace repository, not the code under review.",
+          "toolPermissions": { "allow": ["shellTool"] }
+        }
+      ],
+      "loop": {
+        "producer": "0c4b2a4b-ab69-4cae-9bf3-d762d6915a9b",
+        "maxRounds": 10,
+        "exitWhen": "no-blocker-or-major"
+      },
+      "position": { "x": 0, "y": 280 },
+      "nextStep": "0c4b2a4b-ab69-4cae-9bf3-d762d6915a9b",
+      "skippable": false
+    },
+    {
+      "id": "0c4b2a4b-ab69-4cae-9bf3-d762d6915a9b",
+      "kind": "work",
+      "title": "Fix findings",
+      "description": "The fix loop's producer. Runs only after a review round leaves a blocker or major finding open, and fixes or declines each one.",
+      "interaction": "automatic",
+      "agent": "Review Fixer",
+      "prompt": "Work in the Work directory the \"Resolve scope\" step pinned (the repository, or a worktree on the pull request head). Fix or decline each blocker and major finding, following your instructions.",
+      "position": {
+        "x": -116,
+        "y": 750
+      },
+      "skippable": false,
+      "toolPermissions": { "allow": ["shellTool"] },
+      "manualPosition": true,
+      "nextStep": "a73312b6-55ac-4df7-8f6d-2ef7732c3342"
+    },
+    {
+      "id": "a73312b6-55ac-4df7-8f6d-2ef7732c3342",
+      "title": "Babysit PR",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "kind": "work",
+      "agent": "PR Babysitter",
+      "toolPermissions": {
+        "allow": [
+          "shellTool",
+          "runInTerminal",
+          "publishChatChanges",
+          "removeWorktree"
+        ]
+      }
+    }
+  ]
+}
