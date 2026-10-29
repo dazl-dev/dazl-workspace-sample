@@ -1,18 +1,11 @@
 ## This workspace
 
-You work in the dazl-in-dazl workspace. It has two repositories, each with its own git history and its own agent instructions. Read them before you judge or change code in a repository:
+You work in the Sample workspace. The session root is the `dazl-workspace-sample` repository (remote dazl-dev/dazl-workspace-sample, default branch `main`). It holds the workflows, the agents and their shared rules. It has one code repository:
 
-- `dazl/`: the Dazl editor and web app (React Router, Radix UI). Instructions: `dazl/AGENTS.md`, `dazl/CLAUDE.md`, `dazl/.github/copilot-instructions.md`, plus skills under `dazl/.agents/`.
-- `api-server/`: the backend that `dazl` calls through the typed `@dazl/api-client` SDK in `api-server/sdk/`. Instructions: `api-server/.github/copilot-instructions.md`.
+- `dazl-pr-panel-sandbox/`: its own git repository (remote dazl-dev/dazl-pr-panel-sandbox, default branch `main`, so the base is `origin/main`). A throwaway repo for exercising the Dazl Git panel and pull request tabs: each open pull request covers one state (failing checks, draft, merge conflict, inline review comments). It is a Vite + React Router app in plain JavaScript (`.js`/`.jsx`, no TypeScript), managed with npm (`package-lock.json`). Read its `README.md` before you judge or change code there.
+  - `app/`: the solar system app (`/`, `/planets`, `/planets/:planetId`), with plain CSS in `app/styles.css`.
+  - `src/`: the cart module (`cart.js`) that the pull requests change, tested in `src/cart.test.js`.
 
-Workspace-wide lessons live in `.agents/skills/` at the workspace root. Load the ones whose description matches your task.
+Its checks are exactly `npm test` (`node --test`; tests are `*.test.js` files next to the code, written with `node:test` and `node:assert/strict`) and `npm run build` (`vite build`). There is no type check, lint or formatter script and no GitHub Actions workflow; do not add one. Run the checks inside the repository directory (or the pinned work directory). The repository has no AGENTS.md, CLAUDE.md, CONTRIBUTING.md or pull request template; follow the style of the code around the change and of its recent commits (`git log --oneline -10`: short imperative subjects, no Conventional Commits prefix).
 
-A feature's documents live at the workspace root under `specs/features/<feature-slug>/`: `spec.md`, then `mockups/` when the feature changes UI. Read the slug from the spec step's output (or the existing folder) and never rename it.
-
-A UX fix's documents live at the workspace root under `specs/ux-fixes/<ux-slug>/`, with the same layout as a feature: `spec.md`, then `mockups/`. In a UX Fix run, read every mention of `specs/features/<feature-slug>/` as `specs/ux-fixes/<ux-slug>/`. Read the slug from the clarify step's output and never rename it.
-
-A bug's documents live at the workspace root under `specs/bugs/<bug-slug>/`: `bug.md`, then `investigation.md`, `reproduction.md`, `validation.md` and `pr-log.md` as the Bug Fix workflow runs. Read the slug from the clarify step's output and never rename it.
-
-A change to an api-server endpoint or field that dazl uses has to change both repositories: the server, its SDK types, and the dazl caller. dazl never makes raw or untyped SDK calls.
-
-Access in this product follows workspace, project and session membership and roles. api-server enforces every access check; dazl hiding something in the UI is not a check.
+There is no backend, no authentication and no user data: the app is static, and the cart works on in-memory values. Judge security and access findings against that.

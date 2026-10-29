@@ -19,6 +19,8 @@ are `npm test` and `npm run build` (it has no lint or typecheck script).
 | Review and Fix | PR, branch or diff     | Six parallel reviewers (correctness, security, architecture, tests, UX, performance), a fixer for their findings, then a PR babysitter. |
 
 PR Review, CI Fix Loop and Test Writer never commit, push or comment on a pull request; the run's
-changes stay on its branch. Review and Fix is copied from the outer dazl-in-dazl workspace: its fixer
-and PR babysitter commit and push to the PR branch, its agents run on the Codex harness, and
-`agents/shared/workspace-context.md` still describes that workspace's `dazl/` and `api-server/` repos.
+changes stay on its branch. Review and Fix does publish: its PR babysitter commits the fixes and
+pushes them to the pull request branch (or opens a draft PR against `main` when only a branch was
+reviewed), then fixes failing checks and review threads until the PR is green. It never merges or
+force-pushes. Its agents run on the `dazl` harness and share `agents/shared/workspace-context.md`,
+which describes this workspace and `dazl-pr-panel-sandbox/`.

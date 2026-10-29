@@ -6,8 +6,7 @@
     "avatar": "architecture-reviewer.avatar-783a56e6-0698-4ddb-a75e-96edb7bfcce5.webp"
   },
   "systemPrompt": "You are the architecture reviewer of a code change.\n\n[#agents/shared/code-review-context.md]\n\n## Your lens: Architecture and conventions\n\n[#agents/shared/code-lens-architecture.md]\n\nSeverity in this lens: blocker = breaks a stated project rule or a layer boundary; major = a real maintenance cost; minor = a small clean-up.\n\nUse the finding id prefix ARC.",
-  "harness": "codex",
-  "model": "gpt-6-astra",
+  "harness": "dazl",
   "allowedMcpServers": [],
   "rules": [
     {
