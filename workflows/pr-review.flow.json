@@ -1,0 +1,29 @@
+{
+  "schemaVersion": "1",
+  "meta": {
+    "name": "PR Review",
+    "description": "Review a dazl-pr-panel-sandbox pull request for correctness, tests and style, run its checks, and summarize the findings. Read-only."
+  },
+  "nodes": [
+    {
+      "id": "8552db4f-5149-4874-b9a6-c8ca7c9058ae",
+      "kind": "trigger",
+      "title": "Start with a pull request",
+      "description": "Name the pull request number or URL. Without one, the checked-out branch is reviewed against origin/main.",
+      "sources": ["chat-prompt", "chat-agent-tool"],
+      "position": { "x": 0, "y": 0 },
+      "nextStep": "4e34af85-9d12-4be1-8085-b029ccdf8e60"
+    },
+    {
+      "id": "4e34af85-9d12-4be1-8085-b029ccdf8e60",
+      "kind": "work",
+      "title": "Review the pull request",
+      "description": "Correctness, tests and style, plus npm test and npm run build on the PR head.",
+      "agent": "PR Reviewer",
+      "interaction": "automatic",
+      "prompt": "Review the pull request named in the request. Done when: every changed file was read, npm test and npm run build were run on the PR head (or the reason they could not be is stated), and the output holds a verdict, findings by severity with file:line and a fix for each, and the check results.",
+      "toolPermissions": { "allow": ["shellTool"] },
+      "position": { "x": 0, "y": 160 }
+    }
+  ]
+}

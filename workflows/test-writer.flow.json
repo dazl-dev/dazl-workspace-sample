@@ -1,0 +1,50 @@
+{
+  "schemaVersion": "1",
+  "meta": {
+    "name": "Test Writer",
+    "description": "Find untested code paths in dazl-pr-panel-sandbox and add node:test tests that follow the repo's conventions, reviewed until they pass and assert real behavior."
+  },
+  "nodes": [
+    {
+      "id": "dac39365-c9b8-4b98-8c93-9307ec93d814",
+      "kind": "trigger",
+      "title": "Start with a scope",
+      "description": "Optionally name a file, folder or feature; without one the whole app is covered.",
+      "sources": ["chat-prompt", "chat-agent-tool"],
+      "position": { "x": 0, "y": 0 },
+      "nextStep": "a5899c8d-cf36-4a6c-9377-e98397595eae"
+    },
+    {
+      "id": "a5899c8d-cf36-4a6c-9377-e98397595eae",
+      "kind": "work",
+      "title": "Find gaps and write tests",
+      "description": "Inventory untested paths, rank them by risk, add *.test.js files.",
+      "agent": "Test Writer",
+      "interaction": "automatic",
+      "prompt": "Add tests for the scope in the request. Done when the highest-risk untested paths have tests, npm test passes except for tests marked as reported bugs, npm run build passes, and the output lists the paths still untested with reasons.",
+      "toolPermissions": { "allow": ["shellTool"] },
+      "position": { "x": 0, "y": 160 },
+      "nextStep": "84280082-22b0-47ad-9bd6-d6957e915328"
+    },
+    {
+      "id": "84280082-22b0-47ad-9bd6-d6957e915328",
+      "kind": "review",
+      "title": "Review the new tests",
+      "description": "Checks the tests pass, assert real behavior and follow the conventions.",
+      "reviewers": [
+        {
+          "agent": "Test Reviewer",
+          "prompt": "Review the tests the Test Writer added: run npm test, check each expectation is correct and can fail, and check the high-risk paths are covered or explained.",
+          "toolPermissions": { "allow": ["shellTool"] }
+        }
+      ],
+      "interaction": "automatic",
+      "loop": {
+        "producer": "a5899c8d-cf36-4a6c-9377-e98397595eae",
+        "maxRounds": 3,
+        "exitWhen": "no-blocker-or-major"
+      },
+      "position": { "x": 0, "y": 320 }
+    }
+  ]
+}

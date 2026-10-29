@@ -1,0 +1,50 @@
+{
+  "schemaVersion": "1",
+  "meta": {
+    "name": "CI Fix Loop",
+    "description": "Read the failing checks of a dazl-pr-panel-sandbox branch or pull request, fix the cause, and re-run npm test and npm run build until they pass or the run is blocked."
+  },
+  "nodes": [
+    {
+      "id": "b615e795-4c43-4509-a84d-fe494d145c19",
+      "kind": "trigger",
+      "title": "Start with failing checks",
+      "description": "Name the pull request number or URL, or leave it out to use the checked-out branch.",
+      "sources": ["chat-prompt", "chat-agent-tool"],
+      "position": { "x": 0, "y": 0 },
+      "nextStep": "fca47ed0-a1b2-40cd-9721-810b16765adc"
+    },
+    {
+      "id": "fca47ed0-a1b2-40cd-9721-810b16765adc",
+      "kind": "work",
+      "title": "Fix the failing checks",
+      "description": "Read the failures, find each root cause, fix it, re-run the checks.",
+      "agent": "CI Fixer",
+      "interaction": "automatic",
+      "prompt": "Fix the failing checks for the branch or pull request in the request. Done when npm test and npm run build both pass in dazl-pr-panel-sandbox/, or when you set outcome status blocked with the failure that remains and why.",
+      "toolPermissions": { "allow": ["shellTool"] },
+      "position": { "x": 0, "y": 160 },
+      "nextStep": "d2d0806c-6992-4f9e-8a0a-8d8b428f7535"
+    },
+    {
+      "id": "d2d0806c-6992-4f9e-8a0a-8d8b428f7535",
+      "kind": "review",
+      "title": "Verify the checks are green",
+      "description": "Re-runs every check; each remaining failure sends the fixer another round.",
+      "reviewers": [
+        {
+          "agent": "CI Verifier",
+          "prompt": "Run npm ci, npm test and npm run build in dazl-pr-panel-sandbox/ and check the fix did not weaken any test. Report each failure as a blocker finding.",
+          "toolPermissions": { "allow": ["shellTool"] }
+        }
+      ],
+      "interaction": "automatic",
+      "loop": {
+        "producer": "fca47ed0-a1b2-40cd-9721-810b16765adc",
+        "maxRounds": 5,
+        "exitWhen": "no-blocker-or-major"
+      },
+      "position": { "x": 0, "y": 320 }
+    }
+  ]
+}
