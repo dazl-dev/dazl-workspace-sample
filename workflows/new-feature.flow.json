@@ -1,0 +1,373 @@
+{
+  "schemaVersion": "1",
+  "meta": {
+    "name": "New Feature",
+    "description": "Use when someone asks to add or change product behavior in dazl-pr-panel-sandbox (a new screen, panel, option, endpoint or flow). Not for something that is broken. Agrees the spec with the run owner, then runs unattended: spec review, then a fork. A UI feature goes through screens, before snapshots, mockups with review and product approval. A feature with no UI goes straight to implementation. Both paths continue with implementation and code review, evidence, a final review and approval by R&D and product, then one draft pull request per changed repository, babysat until CI is green and no review thread is open."
+  },
+  "nodes": [
+    {
+      "id": "start",
+      "kind": "trigger",
+      "title": "Start",
+      "description": "Describe the feature you want, in plain words.",
+      "sources": [
+        "workspace-prompt",
+        "chat-prompt",
+        "chat-agent-tool"
+      ],
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "nextStep": "write-spec"
+    },
+    {
+      "id": "write-spec",
+      "kind": "work",
+      "title": "Write spec",
+      "description": "Agrees the spec with the run owner in a chat. There is no spec gate: the owner's agreement here is the approval.",
+      "interaction": "interactive",
+      "agent": "Spec Writer",
+      "prompt": "This step is interactive with the run owner. Draft specs/features/<feature-slug>/spec.md from the feature request, then ask the owner only the questions whose answers change the spec (scope, which repositories change, edge cases, who sees what), one at a time. Update the spec after each answer. Include a Screens section listing every screen, panel, dialog or chat widget the feature changes (changed) or adds (new), or \"None\" when it has no UI. Finish when the owner says the spec is right: list what you agreed, then call write_workflow_output with spec.md in `files` and spec.md as an artifact with role \"spec\".",
+      "position": {
+        "x": 0,
+        "y": 140
+      },
+      "nextStep": "refine-spec",
+      "skippable": false,
+      "toolPermissions": {
+        "allow": [
+          "shellTool"
+        ]
+      }
+    },
+    {
+      "id": "refine-spec",
+      "kind": "work",
+      "title": "Refine spec",
+      "description": "The fix side of the spec review loop. Its first pass checks the agreed spec against the checklist; later passes answer the review findings.",
+      "interaction": "automatic",
+      "agent": "Spec Writer",
+      "prompt": "This step is automatic: never ask a question. If your prompt carries review findings, fix or decline each blocker and major one and append the Fix log to spec.md. If it carries none, this is the first pass: check spec.md against your checklist (testable acceptance criteria, non-goals, repositories, open assumptions, Screens section) and tighten it without changing anything the run owner agreed in the previous step. Never remove or reverse an agreed decision; decline a finding that would, citing the agreed point.",
+      "position": {
+        "x": 0,
+        "y": 280
+      },
+      "nextStep": "review-spec",
+      "skippable": false,
+      "toolPermissions": {
+        "allow": [
+          "shellTool"
+        ]
+      }
+    },
+    {
+      "id": "review-spec",
+      "kind": "review",
+      "title": "Review spec",
+      "description": "Automatic spec review; loops with Refine spec until no blocker or major finding is open, at most 3 rounds.",
+      "interaction": "automatic",
+      "reviewers": [
+        {
+          "agent": "Spec Completeness Reviewer"
+        },
+        {
+          "agent": "Spec Clarity Reviewer"
+        },
+        {
+          "agent": "Spec Security Reviewer"
+        }
+      ],
+      "loop": {
+        "producer": "refine-spec",
+        "maxRounds": 3,
+        "exitWhen": "no-blocker-or-major"
+      },
+      "position": {
+        "x": 0,
+        "y": 420
+      },
+      "nextStep": "ui-or-not",
+      "skippable": false
+    },
+    {
+      "id": "ui-or-not",
+      "kind": "fork",
+      "title": "UI or not",
+      "description": "Skips screens, before snapshots, mockups and design approval when the feature changes nothing a user sees.",
+      "question": "Does this feature change anything a user sees in the dazl-pr-panel-sandbox app: a page, component, dialog, or visible text? Read the spec's Screens section and user stories. Choose \"No UI\" only when every change is backend, API, data, agent prompt or internal behavior with no visible difference. When in doubt, choose \"Changes UI\".",
+      "agentMay": "decide",
+      "outputs": [
+        {
+          "id": "ui",
+          "label": "Changes UI",
+          "description": "At least one screen, panel, dialog, widget or visible text changes or is added.",
+          "nextStep": "pick-screens"
+        },
+        {
+          "id": "no-ui",
+          "label": "No UI",
+          "description": "Nothing a user sees changes; go straight to implementation.",
+          "nextStep": "implement"
+        }
+      ],
+      "position": {
+        "x": 0,
+        "y": 560
+      }
+    },
+    {
+      "id": "pick-screens",
+      "kind": "work",
+      "title": "Pick screens",
+      "description": "Lists the screens and states the feature changes or adds.",
+      "interaction": "automatic",
+      "agent": "Screen Picker",
+      "prompt": "Confirm or complete the Screens section of spec.md against the dazl-pr-panel-sandbox app: each screen and state the feature changes (changed) or adds (new), with its route or the steps to open it.",
+      "position": {
+        "x": 0,
+        "y": 700
+      },
+      "nextStep": "snapshot-before",
+      "skippable": false,
+      "toolPermissions": {
+        "allow": [
+          "shellTool"
+        ]
+      }
+    },
+    {
+      "id": "snapshot-before",
+      "kind": "work",
+      "title": "Snapshot before",
+      "description": "Captures every changed screen before any code changes, as \"before\" artifacts.",
+      "interaction": "automatic",
+      "agent": "Snapshotter",
+      "position": {
+        "x": 0,
+        "y": 840
+      },
+      "nextStep": "mockups",
+      "skippable": false,
+      "toolPermissions": {
+        "allow": [
+          "shellTool"
+        ]
+      }
+    },
+    {
+      "id": "mockups",
+      "kind": "work",
+      "title": "Mockups",
+      "description": "Designs the changed and new screens as HTML mockups; answers the mockup review on later rounds.",
+      "interaction": "automatic",
+      "agent": "Mockup Designer",
+      "position": {
+        "x": 0,
+        "y": 980
+      },
+      "nextStep": "review-mockups",
+      "skippable": false,
+      "toolPermissions": {
+        "allow": [
+          "shellTool"
+        ]
+      }
+    },
+    {
+      "id": "review-mockups",
+      "kind": "review",
+      "title": "Review mockups",
+      "description": "Automatic design review; loops with Mockups, at most 3 rounds.",
+      "interaction": "automatic",
+      "reviewers": [
+        {
+          "agent": "Mockup Fidelity Reviewer"
+        },
+        {
+          "agent": "Mockup Accessibility Reviewer"
+        },
+        {
+          "agent": "Mockup Impact Reviewer"
+        }
+      ],
+      "loop": {
+        "producer": "mockups",
+        "maxRounds": 3,
+        "exitWhen": "no-blocker-or-major"
+      },
+      "position": {
+        "x": 0,
+        "y": 1120
+      },
+      "nextStep": "design-approval",
+      "skippable": false
+    },
+    {
+      "id": "design-approval",
+      "kind": "humanGate",
+      "title": "Design approval",
+      "description": "Product approves the mockups beside the before snapshots. Reject to send the mockups or the spec back with a comment.",
+      "roles": [
+        {
+          "role": "product"
+        }
+      ],
+      "rejectTargets": [
+        "mockups",
+        "write-spec"
+      ],
+      "defaultRejectTarget": "mockups",
+      "position": {
+        "x": 0,
+        "y": 1260
+      },
+      "nextStep": "implement",
+      "skippable": false
+    },
+    {
+      "id": "implement",
+      "kind": "work",
+      "title": "Implement",
+      "description": "Writes the code and tests in dazl-pr-panel-sandbox to the spec (and approved mockups); answers the code review on later rounds.",
+      "interaction": "automatic",
+      "agent": "Implementer",
+      "position": {
+        "x": 0,
+        "y": 1400
+      },
+      "nextStep": "review-implementation",
+      "skippable": false,
+      "toolPermissions": {
+        "allow": [
+          "shellTool"
+        ]
+      }
+    },
+    {
+      "id": "review-implementation",
+      "kind": "review",
+      "title": "Review implementation",
+      "description": "Automatic code review by the workspace's reviewer agents; loops with Implement, at most 3 rounds.",
+      "interaction": "automatic",
+      "reviewers": [
+        {
+          "agent": "Correctness Reviewer",
+          "prompt": "Review the run branch's changes in each repository the run touched against specs/features/<feature-slug>/spec.md. The Implementer answers your findings."
+        },
+        {
+          "agent": "Security Reviewer",
+          "prompt": "Review the run branch's changes in each repository the run touched against specs/features/<feature-slug>/spec.md. The Implementer answers your findings."
+        },
+        {
+          "agent": "Architecture Reviewer",
+          "prompt": "Review the run branch's changes in each repository the run touched against each repository's own instructions and specs/features/<feature-slug>/spec.md. The Implementer answers your findings."
+        },
+        {
+          "agent": "Test Coverage Reviewer",
+          "prompt": "Check that the run branch's changes are covered by meaningful tests that follow the repository's testing conventions, one per acceptance criterion in specs/features/<feature-slug>/spec.md where a test can check it. The Implementer answers your findings."
+        },
+        {
+          "agent": "UX & Accessibility Reviewer",
+          "prompt": "When the run has mockups under specs/features/<feature-slug>/mockups/, check the implemented UI against them and the spec. When the run took the no-UI path and the diff changes nothing a user sees, approve with no findings. The Implementer answers your findings."
+        }
+      ],
+      "loop": {
+        "producer": "implement",
+        "maxRounds": 3,
+        "exitWhen": "no-blocker-or-major"
+      },
+      "position": {
+        "x": 0,
+        "y": 1540
+      },
+      "nextStep": "capture-evidence",
+      "skippable": false
+    },
+    {
+      "id": "capture-evidence",
+      "kind": "work",
+      "title": "Capture evidence",
+      "description": "UI: after shots of every changed screen and one video per user story, with console error counts. No UI: check, test and API output per acceptance criterion.",
+      "interaction": "automatic",
+      "agent": "Evidence Capturer",
+      "position": {
+        "x": 0,
+        "y": 1680
+      },
+      "nextStep": "final-review",
+      "skippable": false,
+      "toolPermissions": {
+        "allow": [
+          "shellTool"
+        ]
+      }
+    },
+    {
+      "id": "final-review",
+      "kind": "review",
+      "title": "Final review",
+      "description": "Checks the evidence against the spec. Its findings are shown on the final approval page; there is no fix loop here - the approvers send work back.",
+      "interaction": "automatic",
+      "reviewers": [
+        {
+          "agent": "Evidence Coverage Reviewer"
+        },
+        {
+          "agent": "Visual Regression Reviewer"
+        }
+      ],
+      "position": {
+        "x": 0,
+        "y": 1820
+      },
+      "nextStep": "final-approval",
+      "skippable": false
+    },
+    {
+      "id": "final-approval",
+      "kind": "humanGate",
+      "title": "Final approval",
+      "description": "R&D and product approve the branch with the evidence. Reject to send the implementation, the mockups or the spec back with a comment.",
+      "roles": [
+        {
+          "role": "rnd"
+        },
+        {
+          "role": "product"
+        }
+      ],
+      "rejectTargets": [
+        "implement",
+        "mockups",
+        "write-spec"
+      ],
+      "defaultRejectTarget": "implement",
+      "position": {
+        "x": 0,
+        "y": 1960
+      },
+      "nextStep": "open-prs",
+      "skippable": false
+    },
+    {
+      "id": "open-prs",
+      "kind": "work",
+      "title": "Open PRs and babysit until green",
+      "description": "Squashes each changed repository's run branch onto its latest base, checks it, and opens a draft pull request for dazl-pr-panel-sandbox and one for the spec in the workspace repo, cross-linked. Then fixes failing checks and answers review comments until CI is green and no review thread is open.",
+      "interaction": "automatic",
+      "agent": "PR Babysitter",
+      "prompt": "This step is automatic: never ask a question. R&D and product approved this feature. Document folder: specs/features/<feature-slug>/ (the slug from the Write spec step). Branch prefix: feat. Pull request body: why (the request and spec.md), tech details (what changed, conflicts resolved during the merge, cross-repository dependencies), product details, and the evidence. Workspace-root pull request: yes, with only the feature folder, against main. Open a draft pull request for dazl-pr-panel-sandbox when the run changed it, against main. Then keep fixing failing checks and unresolved review comments until every required check is green and no review thread is open, within your round limit, following your instructions.",
+      "position": {
+        "x": 0,
+        "y": 2100
+      },
+      "skippable": false,
+      "toolPermissions": {
+        "allow": [
+          "shellTool"
+        ]
+      }
+    }
+  ]
+}

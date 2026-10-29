@@ -1,0 +1,140 @@
+{
+  "schemaVersion": "1",
+  "meta": {
+    "name": "PR Prism",
+    "description": "Review a Node.js PR for code quality, architecture, styling, accessibility and repository conventions."
+  },
+  "nodes": [
+    {
+      "id": "04710dd8-0214-4052-97e1-c885e367d2ae",
+      "kind": "trigger",
+      "title": "Start with a PR or diff",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "nextStep": "1eed6bba-c15f-44d1-acd2-971523e4724c",
+      "sources": [
+        "workspace-prompt",
+        "chat-prompt",
+        "workflow-step"
+      ]
+    },
+    {
+      "id": "6f3c2a1e-8b4d-4e7a-9c15-2d0b7e9f4a61",
+      "kind": "trigger",
+      "title": "Start from an agent",
+      "source": "chat-agent-tool",
+      "position": {
+        "x": 320,
+        "y": 0
+      },
+      "nextStep": "1eed6bba-c15f-44d1-acd2-971523e4724c"
+    },
+    {
+      "id": "1eed6bba-c15f-44d1-acd2-971523e4724c",
+      "kind": "work",
+      "title": "Frame the PR",
+      "agent": "Architecture Scout",
+      "description": "Pin the change, scope and repository conventions.",
+      "prompt": "Prepare PR Prism for a general Node.js repository. Accept a PR URL or repository plus PR number, an explicit base/head comparison, or a supplied patch. Resolve the target repo rather than assuming the current checkout is the PR. With an existing authenticated gh CLI, read PR metadata, current base/head commit IDs, changed-file list and available CI/review evidence; do not log in, request credentials or post anything. Local Git objects or a supplied snapshot also work. If the requested PR cannot be accessed, ask for its diff and base/head IDs; never silently review the current branch instead. For a branch comparison, record the base tip, head and merge-base and use merge-base..head as the PR change range. For a supplied patch or explicitly requested uncommitted changes, freeze and label that evidence as diff-only or working-tree review, recording provenance and coverage limits instead of claiming a verified remote PR.\nCreate a unique report directory under docs/reviews/pr-prism/ at the session project root, named <repo directory>-pr-<number>-<short head SHA> (or <repo directory>-<UTC timestamp>-<short unique suffix> for a branch comparison or patch), or use the user's requested location; reuse it on retries. Never place it inside the reviewed repository or any other repository directory of the session: the workflow engine commits files a step writes onto that repository's checked-out branch, so a report there ships with the next pull request. If the session root is itself inside the reviewed repository (an app at the workspace root), use dazl-qa/reviews/pr-prism/ instead, which Dazl keeps out of Git. Write scope.md with session/repository/package roots, report directory, target identity/URL, snapshot IDs or patch provenance, source access method, working-tree drift, review intent, complete changed-file inventory, added/renamed/deleted paths, stack/tooling, applicable repo rules, available metadata/CI and its commit IDs, and per-lens scope. Record missing, binary, generated or truncated diff/source coverage. Follow pagination when needed; do not equate a truncated response with the full diff. Store a supplied patch in scope.md or linked diff.md when needed; all outputs stay Markdown. Use immutable Git/provider reads for pinned source without checking out or resetting the user's tree. Read test/lint/style configuration and nearby patterns from the reviewed snapshot; do not import Dazl conventions. If no usable target/diff can be established, write scope.md as BLOCKED with required input so later passes do not invent findings. Pass scope.md and any diff.md, with a handoff under 150 words.",
+      "interaction": "automatic",
+      "position": {
+        "x": 0,
+        "y": 180
+      },
+      "nextStep": "c69a4a73-a65f-49e1-b26a-7d36b83e709b"
+    },
+    {
+      "id": "c69a4a73-a65f-49e1-b26a-7d36b83e709b",
+      "kind": "work",
+      "title": "Review the code",
+      "agent": "Code Sentinel",
+      "description": "Check correctness, security, performance and tests.",
+      "prompt": "Read scope.md first and use only its recorded PR or diff snapshot and report directory. If intake is blocked, write your assigned artifact as blocked with the missing input, then stop this pass. Review changes and affected callers/contracts, not the whole repository. Read source at the pinned head/base using local Git objects or an available read-only provider API; use working-tree files only when proven to match that snapshot. Attribute pre-existing issues separately. End with write_workflow_output naming this pass's artifact. Write code-review.md covering introduced or worsened correctness, security and performance issues and the behavior tests needed to verify them. Trace relevant callers/guards and compare with the base where available. For each candidate record severity, confidence, trigger, impact, minimal remedy, and a proposed check; use head path/line evidence, or explicitly labelled base evidence for deleted code. Record reviewed files and remaining gaps; no speculative issue quotas.",
+      "interaction": "automatic",
+      "position": {
+        "x": 0,
+        "y": 360
+      },
+      "nextStep": "915b4676-fc2b-4545-a102-5faddd6e7b2a"
+    },
+    {
+      "id": "915b4676-fc2b-4545-a102-5faddd6e7b2a",
+      "kind": "work",
+      "title": "Review the architecture",
+      "agent": "Systems Architect",
+      "description": "Check boundaries, contracts and long-term impact.",
+      "prompt": "Read scope.md first and use only its recorded PR or diff snapshot and report directory. If intake is blocked, write your assigned artifact as blocked with the missing input, then stop this pass. Review changes and affected callers/contracts, not the whole repository. Read source at the pinned head/base using local Git objects or an available read-only provider API; use working-tree files only when proven to match that snapshot. Attribute pre-existing issues separately. End with write_workflow_output naming this pass's artifact. Write architecture-review.md for the changed surface and direct dependencies. Review package ownership, layering, coupling/cycles, duplicated policy, public APIs and compatibility, configuration, async lifecycle, data/migrations and deployment implications where relevant. Apply this project's established architecture. Read code-review.md only to avoid duplicate findings or to examine a cross-cutting claim. Use source-backed before/after reasoning; do not demand a redesign for stylistic preference. Add a compact Mermaid before/after boundary or flow diagram only when it clarifies a material change, with evidence and labelled inference.",
+      "interaction": "automatic",
+      "position": {
+        "x": 0,
+        "y": 540
+      },
+      "nextStep": "b22f74ff-b448-4630-8a62-98592ee92b9b"
+    },
+    {
+      "id": "b22f74ff-b448-4630-8a62-98592ee92b9b",
+      "kind": "work",
+      "title": "Review styling and accessibility",
+      "agent": "Style Steward",
+      "description": "Check affected UI against the project's design system.",
+      "prompt": "Read scope.md first and use only its recorded PR or diff snapshot and report directory. If intake is blocked, write your assigned artifact as blocked with the missing input, then stop this pass. Review changes and affected callers/contracts, not the whole repository. Read source at the pinned head/base using local Git objects or an available read-only provider API; use working-tree files only when proven to match that snapshot. Attribute pre-existing issues separately. End with write_workflow_output naming this pass's artifact. Write style-review.md. For affected UI/styles, inspect repository components/tokens, responsive/layout behavior, supported themes and accessibility, plus loading/empty/error states where changed. Include code-style patterns only when relevant to these files; the next pass owns general conventions. Use matching rendered evidence if available; otherwise clearly label static inspection and required visual checks. A backend/library change with no UI surface gets a not-applicable result with the reason, then this pass stops.",
+      "interaction": "automatic",
+      "position": {
+        "x": 0,
+        "y": 720
+      },
+      "nextStep": "52f47148-dbaa-425d-bc71-fc460a07023f"
+    },
+    {
+      "id": "52f47148-dbaa-425d-bc71-fc460a07023f",
+      "kind": "work",
+      "title": "Check repository conventions",
+      "agent": "Convention Keeper",
+      "description": "Check standards, tooling, documentation and CI evidence.",
+      "prompt": "Read scope.md first and use only its recorded PR or diff snapshot and report directory. If intake is blocked, write your assigned artifact as blocked with the missing input, then stop this pass. Review changes and affected callers/contracts, not the whole repository. Read source at the pinned head/base using local Git objects or an available read-only provider API; use working-tree files only when proven to match that snapshot. Attribute pre-existing issues separately. End with write_workflow_output naming this pass's artifact. Write conventions-review.md. Inspect the actual repo instructions, lint/formatter/module/type configuration, package scripts and nearby patterns. Check naming/layout/imports, dependency manifests and lockfiles, Node compatibility, tests, API/docs/changelog expectations and PR metadata rules only where established. Cite the concrete rule for each violation; keep optional nits separate and do not impose Dazl branch, commit, UI or state conventions. Read prior pass summaries to avoid duplicate test/contract findings. Run only focused non-fixing checks when the relevant source/config match the snapshot; record the tested revision/dirty state, exact command/results, and checks not run. Keep CI results tied to their commit IDs.",
+      "interaction": "automatic",
+      "position": {
+        "x": 0,
+        "y": 900
+      },
+      "nextStep": "9d96798f-4e96-4fd1-b096-e85af6e68cb3"
+    },
+    {
+      "id": "9d96798f-4e96-4fd1-b096-e85af6e68cb3",
+      "kind": "work",
+      "title": "Deliver the PR review",
+      "agent": "Systems Architect",
+      "description": "Validate findings and produce one actionable review.",
+      "prompt": "Read scope.md first and use only its recorded PR or diff snapshot and report directory. If intake is blocked, write your assigned artifact as blocked with the missing input, then stop this pass. Review changes and affected callers/contracts, not the whole repository. Read source at the pinned head/base using local Git objects or an available read-only provider API; use working-tree files only when proven to match that snapshot. Attribute pre-existing issues separately. End with write_workflow_output naming this pass's artifact. Read scope.md, code-review.md, architecture-review.md, style-review.md and conventions-review.md. Recheck disputed/high-impact claims against the pinned source and base behavior, remove duplicate or unsupported findings, and write report.md. Separate confirmed regressions, mandatory convention violations, optional suggestions, pre-existing issues and open questions. Each finding needs a concise title, severity/confidence, a short evidence location tied to the correct snapshot (head or labelled base/deleted path), a trigger and impact, and a minimal remedy/verification step. Include the reviewed target/IDs, intent summary, coverage for every changed file and lens (reviewed, partial, not applicable or unreviewed), actual checks/CI evidence, visual-validation status, and material gaps. Give a local recommendation: changes recommended, no blocking findings within the reviewed scope, or needs verification; never claim that unrun checks passed. If intake was blocked, deliver an incomplete report naming the required input.\nWhen remote metadata is accessible, recheck PR base/head IDs before finalizing. If they changed, label this a review of the recorded snapshot and identify that newer changes need review; do not silently claim it covers the current PR. Recheck relevant application-code drift; this workflow's report files live outside the reviewed repository and are never part of its change. End with prioritized next actions and the least-confident conclusion and next check. Call write_workflow_output with report.md and a concise summary. Do not post, approve, request changes or merge through GitHub; the recommendation stays in the report.",
+      "interaction": "automatic",
+      "position": {
+        "x": 0,
+        "y": 1080
+      },
+      "nextStep": "ecc094cd-ebcb-4919-b903-1c5dc179c45b"
+    },
+    {
+      "id": "ecc094cd-ebcb-4919-b903-1c5dc179c45b",
+      "title": "fix findings",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "kind": "subWorkflow",
+      "workflow": "workflows/implement-code-fix.flow.json",
+      "nextStep": "2f8061c2-e7b1-4292-aec7-632cded2a319"
+    },
+    {
+      "id": "2f8061c2-e7b1-4292-aec7-632cded2a319",
+      "title": "run full review",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "kind": "subWorkflow",
+      "workflow": "workflows/review-and-fix.flow.json"
+    }
+  ]
+}

@@ -1,0 +1,292 @@
+{
+  "schemaVersion": "1",
+  "meta": {
+    "name": "UX Fix",
+    "description": "Use when something in dazl-pr-panel-sandbox works but the experience is wrong: an interaction, layout, copy, responsiveness or accessibility problem on an existing screen. Not for a new capability (New Feature) or something broken (Bug Fix). Agrees the fix with the run owner, then runs unattended: before snapshots, mockups with review and a design approval, implementation with code review, after evidence on every device the spec names, a final review and approval, then a draft pull request per changed repository, babysat until CI is green."
+  },
+  "nodes": [
+    {
+      "id": "a4d1c7e2-5b3f-4e8a-9c61-7f2e0d9b3a01",
+      "kind": "trigger",
+      "title": "Start",
+      "description": "Describe the experience to fix: where it is, what is wrong today and what it should do instead.",
+      "sources": [
+        "workspace-prompt",
+        "chat-prompt",
+        "chat-agent-tool"
+      ],
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "nextStep": "a4d1c7e2-5b3f-4e8a-9c61-7f2e0d9b3a02"
+    },
+    {
+      "id": "a4d1c7e2-5b3f-4e8a-9c61-7f2e0d9b3a02",
+      "kind": "work",
+      "title": "Clarify UX fix",
+      "description": "Interactive: agrees the problem, the desired behaviour, the devices and the acceptance criteria with the run owner. Writes specs/ux-fixes/<ux-slug>/spec.md.",
+      "interaction": "interactive",
+      "agent": "UX Fix Clarifier",
+      "prompt": "This step is interactive with the run owner. Read the code the request points at, draft specs/ux-fixes/<ux-slug>/spec.md, then ask the owner one question at a time until every story has testable acceptance criteria and the Devices and viewports section is settled. Finish when the owner confirms the spec.",
+      "position": {
+        "x": 0,
+        "y": 140
+      },
+      "nextStep": "a4d1c7e2-5b3f-4e8a-9c61-7f2e0d9b3a03",
+      "skippable": false,
+      "toolPermissions": {
+        "allow": [
+          "shellTool"
+        ]
+      }
+    },
+    {
+      "id": "a4d1c7e2-5b3f-4e8a-9c61-7f2e0d9b3a03",
+      "kind": "work",
+      "title": "Pick screens",
+      "description": "Confirms the screens and states the fix changes, with steps to open each.",
+      "interaction": "automatic",
+      "agent": "Screen Picker",
+      "prompt": "This step is automatic: never ask a question. The spec is specs/ux-fixes/<ux-slug>/spec.md (the slug from the Clarify UX fix step). Confirm or complete its Screens section against the dazl-pr-panel-sandbox app. List each screen and state once per viewport in the spec's Devices and viewports section.",
+      "position": {
+        "x": 0,
+        "y": 280
+      },
+      "nextStep": "a4d1c7e2-5b3f-4e8a-9c61-7f2e0d9b3a04",
+      "skippable": false,
+      "toolPermissions": {
+        "allow": [
+          "shellTool"
+        ]
+      }
+    },
+    {
+      "id": "a4d1c7e2-5b3f-4e8a-9c61-7f2e0d9b3a04",
+      "kind": "work",
+      "title": "Snapshot before",
+      "description": "Captures every changed screen on the unchanged code, at each viewport the spec names, as \"before\" artifacts.",
+      "interaction": "automatic",
+      "agent": "Snapshotter",
+      "prompt": "This step is automatic: never ask a question. The spec is specs/ux-fixes/<ux-slug>/spec.md. Capture every changed screen and state at each viewport in its Devices and viewports section. Put the viewport in the screen name (for example run-tab-image-fullscreen-desktop and run-tab-image-fullscreen-mobile) and in meta.viewport.",
+      "position": {
+        "x": 0,
+        "y": 420
+      },
+      "nextStep": "a4d1c7e2-5b3f-4e8a-9c61-7f2e0d9b3a05",
+      "skippable": false,
+      "toolPermissions": {
+        "allow": [
+          "shellTool"
+        ]
+      }
+    },
+    {
+      "id": "a4d1c7e2-5b3f-4e8a-9c61-7f2e0d9b3a05",
+      "kind": "work",
+      "title": "Mockups",
+      "description": "Designs the fixed screens as HTML mockups, per viewport; answers the mockup review on later rounds.",
+      "interaction": "automatic",
+      "agent": "Mockup Designer",
+      "prompt": "This step is automatic: never ask a question. The document folder is specs/ux-fixes/<ux-slug>/. Mock up every changed screen at each viewport the spec names, starting from its before capture. Show the interaction states the acceptance criteria describe (for example idle, zoomed in, panned, reset) and any controls or hints the fix adds.",
+      "position": {
+        "x": 0,
+        "y": 560
+      },
+      "nextStep": "a4d1c7e2-5b3f-4e8a-9c61-7f2e0d9b3a06",
+      "skippable": false,
+      "toolPermissions": {
+        "allow": [
+          "shellTool"
+        ]
+      }
+    },
+    {
+      "id": "a4d1c7e2-5b3f-4e8a-9c61-7f2e0d9b3a06",
+      "kind": "review",
+      "title": "Review mockups",
+      "description": "Automatic design review; loops with Mockups until no blocker or major finding is open, at most 3 rounds.",
+      "interaction": "automatic",
+      "reviewers": [
+        {
+          "agent": "Mockup Fidelity Reviewer",
+          "prompt": "Check the mockups in specs/ux-fixes/<ux-slug>/mockups/ against spec.md and the before captures, at every viewport the spec names. The Mockup Designer answers your findings."
+        },
+        {
+          "agent": "Mockup Accessibility Reviewer",
+          "prompt": "Check the mockups in specs/ux-fixes/<ux-slug>/mockups/ for keyboard, touch and screen-reader behaviour, contrast and target sizes, at every viewport the spec names. The Mockup Designer answers your findings."
+        },
+        {
+          "agent": "Mockup Impact Reviewer",
+          "prompt": "Check what the mockups in specs/ux-fixes/<ux-slug>/mockups/ change beyond the fix in spec.md: other screens, existing behaviour, the design system. The Mockup Designer answers your findings."
+        }
+      ],
+      "loop": {
+        "producer": "a4d1c7e2-5b3f-4e8a-9c61-7f2e0d9b3a05",
+        "maxRounds": 3,
+        "exitWhen": "no-blocker-or-major"
+      },
+      "position": {
+        "x": 0,
+        "y": 700
+      },
+      "nextStep": "a4d1c7e2-5b3f-4e8a-9c61-7f2e0d9b3a07",
+      "skippable": false
+    },
+    {
+      "id": "a4d1c7e2-5b3f-4e8a-9c61-7f2e0d9b3a07",
+      "kind": "humanGate",
+      "title": "Design approval",
+      "description": "The run owner approves the mockups beside the before snapshots. Reject to send the mockups or the spec back with a comment.",
+      "rejectTargets": [
+        "a4d1c7e2-5b3f-4e8a-9c61-7f2e0d9b3a05",
+        "a4d1c7e2-5b3f-4e8a-9c61-7f2e0d9b3a02"
+      ],
+      "defaultRejectTarget": "a4d1c7e2-5b3f-4e8a-9c61-7f2e0d9b3a05",
+      "position": {
+        "x": 0,
+        "y": 840
+      },
+      "nextStep": "a4d1c7e2-5b3f-4e8a-9c61-7f2e0d9b3a08",
+      "skippable": false
+    },
+    {
+      "id": "a4d1c7e2-5b3f-4e8a-9c61-7f2e0d9b3a08",
+      "kind": "work",
+      "title": "Implement",
+      "description": "Implements the fix to the spec and approved mockups, with tests; answers the code review on later rounds.",
+      "interaction": "automatic",
+      "agent": "Implementer",
+      "prompt": "This step is automatic: never ask a question. Implement the UX fix in specs/ux-fixes/<ux-slug>/spec.md to match the approved mockups in its mockups/ folder, on every device and input the spec names (mouse, trackpad, keyboard, touch). Reuse existing dazl components and dependencies before adding one. Add tests for each acceptance criterion a test can check.",
+      "position": {
+        "x": 0,
+        "y": 980
+      },
+      "nextStep": "a4d1c7e2-5b3f-4e8a-9c61-7f2e0d9b3a09",
+      "skippable": false,
+      "toolPermissions": {
+        "allow": [
+          "shellTool"
+        ]
+      }
+    },
+    {
+      "id": "a4d1c7e2-5b3f-4e8a-9c61-7f2e0d9b3a09",
+      "kind": "review",
+      "title": "Review implementation",
+      "description": "Automatic code review; loops with Implement until no blocker or major finding is open, at most 3 rounds.",
+      "interaction": "automatic",
+      "reviewers": [
+        {
+          "agent": "UX & Accessibility Reviewer",
+          "prompt": "Check the implemented UI against specs/ux-fixes/<ux-slug>/spec.md and its mockups/, on every device and input the spec names, including keyboard and touch. The Implementer answers your findings."
+        },
+        {
+          "agent": "Correctness Reviewer",
+          "prompt": "Review the run branch's changes in each repository the run touched against specs/ux-fixes/<ux-slug>/spec.md. The Implementer answers your findings."
+        },
+        {
+          "agent": "Architecture Reviewer",
+          "prompt": "Review the run branch's changes in each repository the run touched against each repository's own instructions and specs/ux-fixes/<ux-slug>/spec.md, including reuse of existing components and dependencies. The Implementer answers your findings."
+        },
+        {
+          "agent": "Performance Reviewer",
+          "prompt": "Review the run branch's changes for rendering and interaction cost (re-renders, layout thrash, listeners, large assets) on the devices specs/ux-fixes/<ux-slug>/spec.md names. The Implementer answers your findings."
+        },
+        {
+          "agent": "Test Coverage Reviewer",
+          "prompt": "Check that the run branch's changes are covered by meaningful tests that follow the repository's testing conventions, one per acceptance criterion in specs/ux-fixes/<ux-slug>/spec.md where a test can check it. The Implementer answers your findings."
+        }
+      ],
+      "loop": {
+        "producer": "a4d1c7e2-5b3f-4e8a-9c61-7f2e0d9b3a08",
+        "maxRounds": 3,
+        "exitWhen": "no-blocker-or-major"
+      },
+      "position": {
+        "x": 0,
+        "y": 1120
+      },
+      "nextStep": "a4d1c7e2-5b3f-4e8a-9c61-7f2e0d9b3a10",
+      "skippable": false
+    },
+    {
+      "id": "a4d1c7e2-5b3f-4e8a-9c61-7f2e0d9b3a10",
+      "kind": "work",
+      "title": "Capture evidence",
+      "description": "After shots of every changed screen, paired with the before shots, and one video per story at each viewport, with console error counts.",
+      "interaction": "automatic",
+      "agent": "Evidence Capturer",
+      "prompt": "This step is automatic: never ask a question. The spec is specs/ux-fixes/<ux-slug>/spec.md. Capture every changed screen at each viewport with the same screen names the Snapshot before step used. Record one video per user story at each viewport the spec names, walking through its acceptance criteria; for touch criteria use a mobile viewport with touch emulation, and say in your summary which gestures were really exercised and which were simulated.",
+      "position": {
+        "x": 0,
+        "y": 1260
+      },
+      "nextStep": "a4d1c7e2-5b3f-4e8a-9c61-7f2e0d9b3a11",
+      "skippable": false,
+      "toolPermissions": {
+        "allow": [
+          "shellTool"
+        ]
+      }
+    },
+    {
+      "id": "a4d1c7e2-5b3f-4e8a-9c61-7f2e0d9b3a11",
+      "kind": "review",
+      "title": "Final review",
+      "description": "Checks the evidence against the spec and the mockups. Its findings are shown on the final approval page; the approver sends work back.",
+      "interaction": "automatic",
+      "reviewers": [
+        {
+          "agent": "Evidence Coverage Reviewer"
+        },
+        {
+          "agent": "Visual Regression Reviewer"
+        }
+      ],
+      "position": {
+        "x": 0,
+        "y": 1400
+      },
+      "nextStep": "a4d1c7e2-5b3f-4e8a-9c61-7f2e0d9b3a12",
+      "skippable": false
+    },
+    {
+      "id": "a4d1c7e2-5b3f-4e8a-9c61-7f2e0d9b3a12",
+      "kind": "humanGate",
+      "title": "Final approval",
+      "description": "The run owner approves the fix with the before and after evidence. Reject to send the implementation, the mockups or the spec back with a comment.",
+      "rejectTargets": [
+        "a4d1c7e2-5b3f-4e8a-9c61-7f2e0d9b3a08",
+        "a4d1c7e2-5b3f-4e8a-9c61-7f2e0d9b3a05",
+        "a4d1c7e2-5b3f-4e8a-9c61-7f2e0d9b3a02"
+      ],
+      "defaultRejectTarget": "a4d1c7e2-5b3f-4e8a-9c61-7f2e0d9b3a08",
+      "position": {
+        "x": 0,
+        "y": 1540
+      },
+      "nextStep": "a4d1c7e2-5b3f-4e8a-9c61-7f2e0d9b3a13",
+      "skippable": false
+    },
+    {
+      "id": "a4d1c7e2-5b3f-4e8a-9c61-7f2e0d9b3a13",
+      "kind": "work",
+      "title": "Open PRs and babysit until green",
+      "description": "Squashes each changed repository's run branch onto its latest base and opens a draft pull request per repository, cross-linked. Then fixes failing checks and answers review comments until CI is green and no review thread is open.",
+      "interaction": "automatic",
+      "agent": "PR Babysitter",
+      "prompt": "This step is automatic: never ask a question. The run owner approved this UX fix. Document folder: specs/ux-fixes/<ux-slug>/ (the slug from the Clarify UX fix step). Branch prefix: fix. Pull request body: the problem and desired behaviour from spec.md, what changed, the devices and inputs covered, and the before and after evidence per viewport. Workspace-root pull request: no; open a pull request only for dazl-pr-panel-sandbox/, against main. Then keep fixing failing checks and unresolved review comments until every required check is green and no review thread is open, within your round limit, following your instructions.",
+      "position": {
+        "x": 0,
+        "y": 1680
+      },
+      "skippable": false,
+      "toolPermissions": {
+        "allow": [
+          "shellTool"
+        ]
+      }
+    }
+  ]
+}

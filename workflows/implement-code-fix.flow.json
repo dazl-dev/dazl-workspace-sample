@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "1",
+  "meta": {
+    "name": "Implement Code Fix",
+    "description": "Fixes the root cause of a clarified, reproduced bug and makes its regression tests pass, then runs the Review and Fix workflow on the result. Unattended. Usually a step of Bug Fix; can also start from the chat when the bug folder under specs/bugs/ already exists."
+  },
+  "nodes": [
+    {
+      "id": "c2f6a0d4-6e1b-4b8e-9a51-3f7d2e8c1a01",
+      "kind": "trigger",
+      "title": "Start",
+      "description": "Run as a Bug Fix step, or name the bug folder under specs/bugs/ to fix.",
+      "sources": [
+        "workflow-step",
+        "chat-prompt"
+      ],
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "nextStep": "c2f6a0d4-6e1b-4b8e-9a51-3f7d2e8c1a02"
+    },
+    {
+      "id": "c2f6a0d4-6e1b-4b8e-9a51-3f7d2e8c1a02",
+      "kind": "work",
+      "title": "Implement fix",
+      "description": "Fixes the root cause in dazl-pr-panel-sandbox, makes the regression tests pass and runs each touched repository's checks.",
+      "interaction": "automatic",
+      "agent": "Bug Fix Implementer",
+      "prompt": "This step is automatic: never ask a question. Fix every in-scope bug in specs/bugs/<bug-slug>/bug.md using investigation.md and reproduction.md, make the reproduce step's regression tests pass, and run each touched repository's checks on what you changed.",
+      "position": {
+        "x": 0,
+        "y": 140
+      },
+      "nextStep": "c2f6a0d4-6e1b-4b8e-9a51-3f7d2e8c1a03",
+      "skippable": false,
+      "toolPermissions": {
+        "allow": [
+          "shellTool"
+        ]
+      }
+    },
+    {
+      "id": "c2f6a0d4-6e1b-4b8e-9a51-3f7d2e8c1a03",
+      "kind": "subWorkflow",
+      "title": "Review and fix",
+      "description": "Runs Review and Fix on the fix: six reviewers in a fix loop with the Review Fixer, until no blocker or major finding is open (at most 3 rounds).",
+      "workflow": "workflows/review-and-fix.flow.json",
+      "instruction": "Review the bug fix that the Implement Code Fix workflow just made, not the bug report. Work in dazl-pr-panel-sandbox/. The branch under review is that repository's currently checked-out run branch, including its uncommitted changes. Compare it against origin/main. The bug and its root cause are described in the newest folder under specs/bugs/ (bug.md, investigation.md, reproduction.md); reviewers should check the fix addresses that root cause and keeps its regression tests meaningful.",
+      "position": {
+        "x": 0,
+        "y": 280
+      }
+    }
+  ]
+}

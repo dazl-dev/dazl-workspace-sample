@@ -1,0 +1,155 @@
+{
+  "schemaVersion": "1",
+  "meta": {
+    "name": "Bug Fix",
+    "description": "Use when something in dazl-pr-panel-sandbox is broken. Clarifies the bug or bugs with the run owner, then runs unattended: explores the code for likely causes, reproduces each bug with evidence, runs Implement Code Fix (fix, then Review and Fix), validates the fix as QA, waits for a human review, and babysits the pull request until CI is green and no review comment is open."
+  },
+  "nodes": [
+    {
+      "id": "b7e3d9a2-1f4c-4c6a-8e2b-5d9f0a1b2c01",
+      "kind": "trigger",
+      "title": "Start",
+      "description": "Describe what is broken: what you did, what you expected and what happened. Several bugs are fine.",
+      "sources": [
+        "workspace-prompt",
+        "chat-prompt",
+        "chat-agent-tool"
+      ],
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "nextStep": "b7e3d9a2-1f4c-4c6a-8e2b-5d9f0a1b2c02"
+    },
+    {
+      "id": "b7e3d9a2-1f4c-4c6a-8e2b-5d9f0a1b2c02",
+      "kind": "work",
+      "title": "Clarify",
+      "description": "Interactive: asks the run owner questions until each bug has steps to reproduce, an expected and an actual result. Writes specs/bugs/<bug-slug>/bug.md.",
+      "interaction": "interactive",
+      "agent": "Bug Clarifier",
+      "prompt": "This step is interactive with the run owner. Read the code the report points at, draft specs/bugs/<bug-slug>/bug.md, then ask the owner one question at a time until every in-scope bug has concrete steps to reproduce, an expected result and an actual result. Finish when the owner confirms the report.",
+      "position": {
+        "x": 0,
+        "y": 140
+      },
+      "nextStep": "b7e3d9a2-1f4c-4c6a-8e2b-5d9f0a1b2c03",
+      "skippable": false,
+      "toolPermissions": {
+        "allow": [
+          "shellTool"
+        ]
+      }
+    },
+    {
+      "id": "b7e3d9a2-1f4c-4c6a-8e2b-5d9f0a1b2c03",
+      "kind": "work",
+      "title": "Investigate",
+      "description": "Explores the code for the likely causes of each bug and ranks them with path:line evidence. Writes investigation.md. No code changes.",
+      "interaction": "automatic",
+      "agent": "Bug Investigator",
+      "prompt": "This step is automatic: never ask a question. Explore dazl-pr-panel-sandbox for the likely causes of every bug in specs/bugs/<bug-slug>/bug.md and write investigation.md with ranked hypotheses and reproduction hints.",
+      "position": {
+        "x": 0,
+        "y": 280
+      },
+      "nextStep": "b7e3d9a2-1f4c-4c6a-8e2b-5d9f0a1b2c04",
+      "skippable": false,
+      "toolPermissions": {
+        "allow": [
+          "shellTool"
+        ]
+      }
+    },
+    {
+      "id": "b7e3d9a2-1f4c-4c6a-8e2b-5d9f0a1b2c04",
+      "kind": "work",
+      "title": "Reproduce",
+      "description": "Reproduces each bug on the unfixed code: a failing regression test where possible, plus screenshots, videos or API output as \"before\" evidence. Writes reproduction.md.",
+      "interaction": "automatic",
+      "agent": "Bug Reproducer",
+      "prompt": "This step is automatic: never ask a question. Reproduce every bug in specs/bugs/<bug-slug>/bug.md on the current code, guided by investigation.md. Prefer a failing regression test; add runtime captures when the bug shows in the UI or the API. Do not fix anything.",
+      "position": {
+        "x": 0,
+        "y": 420
+      },
+      "nextStep": "b7e3d9a2-1f4c-4c6a-8e2b-5d9f0a1b2c05",
+      "skippable": false,
+      "toolPermissions": {
+        "allow": [
+          "shellTool"
+        ]
+      }
+    },
+    {
+      "id": "b7e3d9a2-1f4c-4c6a-8e2b-5d9f0a1b2c05",
+      "kind": "subWorkflow",
+      "title": "Implement code fix",
+      "description": "Runs Implement Code Fix: the Bug Fix Implementer fixes the root cause, then Review and Fix reviews and fixes the change.",
+      "workflow": "workflows/implement-code-fix.flow.json",
+      "instruction": "The bug folder is the newest one under specs/bugs/; it holds bug.md, investigation.md and reproduction.md from this Bug Fix run, and the reproduce step's regression tests are already on the run branch.",
+      "position": {
+        "x": 0,
+        "y": 560
+      },
+      "nextStep": "b7e3d9a2-1f4c-4c6a-8e2b-5d9f0a1b2c06"
+    },
+    {
+      "id": "b7e3d9a2-1f4c-4c6a-8e2b-5d9f0a1b2c06",
+      "kind": "work",
+      "title": "Validate the fix",
+      "description": "QA: re-runs every reproduction on the fixed code, captures \"after\" evidence paired with the before captures, and checks for regressions. Writes validation.md. No code changes.",
+      "interaction": "automatic",
+      "agent": "Fix Validator",
+      "prompt": "This step is automatic: never ask a question. Validate the fix on the run branch against specs/bugs/<bug-slug>/bug.md and reproduction.md: re-run each reproduction, capture after evidence with the same screen names as the Reproduce step, and run the regression checks.",
+      "position": {
+        "x": 0,
+        "y": 700
+      },
+      "nextStep": "b7e3d9a2-1f4c-4c6a-8e2b-5d9f0a1b2c07",
+      "skippable": false,
+      "toolPermissions": {
+        "allow": [
+          "shellTool"
+        ]
+      }
+    },
+    {
+      "id": "b7e3d9a2-1f4c-4c6a-8e2b-5d9f0a1b2c07",
+      "kind": "humanGate",
+      "title": "Human review",
+      "description": "A person reviews the fix with the before and after evidence. Approve to open the pull request; reject to send the fix, the reproduction or the bug report back with a comment.",
+      "rejectTargets": [
+        "b7e3d9a2-1f4c-4c6a-8e2b-5d9f0a1b2c05",
+        "b7e3d9a2-1f4c-4c6a-8e2b-5d9f0a1b2c04",
+        "b7e3d9a2-1f4c-4c6a-8e2b-5d9f0a1b2c02"
+      ],
+      "defaultRejectTarget": "b7e3d9a2-1f4c-4c6a-8e2b-5d9f0a1b2c05",
+      "position": {
+        "x": 0,
+        "y": 840
+      },
+      "nextStep": "b7e3d9a2-1f4c-4c6a-8e2b-5d9f0a1b2c08",
+      "skippable": false
+    },
+    {
+      "id": "b7e3d9a2-1f4c-4c6a-8e2b-5d9f0a1b2c08",
+      "kind": "work",
+      "title": "Babysit until green",
+      "description": "Squashes each changed repository's run branch onto its latest base, checks it, and opens a draft pull request for dazl-pr-panel-sandbox against main. Then fixes failing checks and answers review comments until CI is green and no review thread is open.",
+      "interaction": "automatic",
+      "agent": "PR Babysitter",
+      "prompt": "This step is automatic: never ask a question. The human review approved this fix. Document folder: specs/bugs/<bug-slug>/ (the slug from the Clarify step). Branch prefix: fix. Pull request body: the bug (steps, expected, actual) from bug.md, the root cause from investigation.md, the fix, and the before and after evidence and regression checks from reproduction.md and validation.md. Workspace-root pull request: no; open a pull request only for dazl-pr-panel-sandbox/, against main. Then keep fixing failing checks and unresolved review comments until every required check is green and no review thread is open, within your round limit, following your instructions.",
+      "position": {
+        "x": 0,
+        "y": 980
+      },
+      "skippable": false,
+      "toolPermissions": {
+        "allow": [
+          "shellTool"
+        ]
+      }
+    }
+  ]
+}

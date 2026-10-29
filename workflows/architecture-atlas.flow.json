@@ -1,0 +1,94 @@
+{
+  "schemaVersion": "1",
+  "meta": {
+    "name": "Architecture Atlas",
+    "description": "Review a Node.js system with source-linked findings, architecture maps and decision flows."
+  },
+  "nodes": [
+    {
+      "id": "54785047-1a77-40a3-8843-8a6c900b804b",
+      "kind": "trigger",
+      "title": "Start with a prompt",
+      "source": "chat-prompt",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "nextStep": "4aa67896-1150-4830-bc2f-864f52cb400f"
+    },
+    {
+      "id": "4aa67896-1150-4830-bc2f-864f52cb400f",
+      "kind": "work",
+      "title": "Map the landscape",
+      "description": "Locate packages, entrypoints and review coverage.",
+      "agent": "Architecture Scout",
+      "interaction": "automatic",
+      "prompt": "Start a whole-system architecture review for the Node.js repository requested by the user. Resolve the target from the request, Git roots, package.json and workspace manifests; the session may contain multiple repositories or a monorepo. If ambiguous, ask which target to review. Record session root, repo/package roots, branch, HEAD, dirty files, requested scope and budget. Read applicable instructions, README, package scripts and relevant established decisions. Choose a new report directory under docs/reviews/architecture-atlas/ at the session project root, named <repo directory>-<UTC timestamp>-<short unique suffix>, or use the user's requested location. Never place it inside the reviewed repository or any other repository directory of the session: the workflow engine commits files a step writes onto that repository's checked-out branch, so a report there ships with the next pull request. If the session root is itself inside the reviewed repository (an app at the workspace root), use dazl-qa/reviews/architecture-atlas/ instead, which Dazl keeps out of Git. Preserve existing reports and reuse this directory on retries. Record its session-relative path in inventory.md and in the handoff. QL is unavailable; use built-in search and source reads. Inventory the actual workspaces/packages and source areas, entrypoints, tests, build/runtime configuration, scripts, CI, deployment and relevant docs. Identify framework and module system from evidence. Group every area into an owner/domain with traced, sampled or unreviewed coverage; do not assume src/, app/, a frontend, a database or an HTTP server exists. Trace representative boundaries between packages/processes, handlers/services, state stores and external systems that actually exist. Mark inaccessible external internals unverified. Write inventory.md with the scope, coverage table, source anchors and questions for the trace stage; keep this step focused on discovery.",
+      "position": {
+        "x": -446.25,
+        "y": 170
+      },
+      "nextStep": "becb44d9-6120-4616-a1d6-368ff92c3b83",
+      "manualPosition": true
+    },
+    {
+      "id": "becb44d9-6120-4616-a1d6-368ff92c3b83",
+      "kind": "work",
+      "title": "Trace the critical flows",
+      "description": "Follow real requests, commands, jobs or user journeys.",
+      "agent": "Architecture Scout",
+      "interaction": "automatic",
+      "prompt": "Read inventory.md and reuse its target, scope and report directory. Infer the important flows from the request, README, entrypoints, routes, exported APIs, commands, consumers and tests. Cover the real product's critical paths: HTTP requests, library API calls, CLI commands, scheduled/background jobs, events or UI interactions as applicable. Trace inputs through code decisions, runtime boundaries and state changes to observable outcomes, including real failure, retry, cancellation and cleanup branches. Write traces.md with source evidence and a flow coverage table; mark unfinished flows and external unknowns. Update only inspected coverage in inventory.md. Pass both files onward.",
+      "position": {
+        "x": -148.75,
+        "y": 325
+      },
+      "nextStep": "bf968529-f548-4cc0-86c3-a2eb41a31185",
+      "manualPosition": true
+    },
+    {
+      "id": "bf968529-f548-4cc0-86c3-a2eb41a31185",
+      "kind": "work",
+      "title": "Review the architecture",
+      "description": "Assess dependencies, reliability and ownership.",
+      "agent": "Systems Architect",
+      "interaction": "automatic",
+      "prompt": "Read inventory.md and traces.md. Review the discovered Node.js architecture and affected boundaries using the target repo's decisions. Check modularity, dependency direction, API/data contracts, event-loop and async behavior, state/durability, trust boundaries, concurrency, startup/shutdown, deployment and testing seams where relevant. Validate candidate defects against code and tests. Write findings.md with prioritized confirmed findings, separate suggestions/questions, documented versus inferred rationale and ordered follow-ups. Do not prescribe a framework or implement fixes. Pass inventory.md, traces.md and findings.md onward.",
+      "position": {
+        "x": -441.25,
+        "y": 518.75
+      },
+      "nextStep": "020bf23e-8cfe-476a-8048-6b5d6fb9d0fd",
+      "manualPosition": true
+    },
+    {
+      "id": "020bf23e-8cfe-476a-8048-6b5d6fb9d0fd",
+      "kind": "work",
+      "title": "Draw the atlas",
+      "description": "Connect system structure and critical code decisions.",
+      "agent": "Flow Cartographer",
+      "interaction": "automatic",
+      "prompt": "Use inventory.md, traces.md and findings.md to draft report.md. Include a system-context diagram, package/module ownership and grouped critical-flow diagrams with real decision predicates. Include user journeys only when the system has a user-facing surface; otherwise show consumer/API/CLI/job flows. Use sequences where asynchronous ordering matters. Attach evidence tables and explicit unknowns. Carry findings and coverage into the report without inflating confidence; link detailed supporting artifacts.",
+      "position": {
+        "x": -142.5,
+        "y": 693.75
+      },
+      "nextStep": "616aa812-c00f-47d7-9fa3-912775be189b",
+      "manualPosition": true
+    },
+    {
+      "id": "616aa812-c00f-47d7-9fa3-912775be189b",
+      "kind": "work",
+      "title": "Verify the atlas",
+      "description": "Check the evidence and deliver the review.",
+      "agent": "Systems Architect",
+      "interaction": "automatic",
+      "prompt": "Verify and finish Architecture Atlas in report.md in the established report directory. Read the artifacts named by earlier stages and resolve material doubts with targeted source reads. Check findings, important diagram edges, source links, coverage and ownership. Validate Mermaid with already-installed tooling if available and report syntax/visual validation separately. Run a focused existing check only when it resolves a material claim; follow the target repo's test guidance and avoid full suites by default. Recheck application-code drift and record which revision/checks support the report; the report files live outside the reviewed repository and are never part of its code. Repair the report without changing application code. Include gaps, checks actually run, prioritized next actions, and the least-confident conclusion with its next check. Mark incomplete requested coverage explicitly. Finish with write_workflow_output pointing to report.md and a concise summary; report tokens only when measured.",
+      "position": {
+        "x": -503.75,
+        "y": 885
+      },
+      "manualPosition": true
+    }
+  ]
+}

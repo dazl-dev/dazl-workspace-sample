@@ -1,0 +1,61 @@
+{
+  "schemaVersion": "1",
+  "meta": {
+    "name": "Journey Lens",
+    "description": "Trace Node.js user or consumer interactions into decisions, state changes and recovery."
+  },
+  "nodes": [
+    {
+      "id": "d48dd033-10cf-4efb-af96-76406febed90",
+      "kind": "trigger",
+      "title": "Start with a prompt",
+      "source": "chat-prompt",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "nextStep": "236eed44-2652-4bfe-a49a-1389a9ceee95"
+    },
+    {
+      "id": "236eed44-2652-4bfe-a49a-1389a9ceee95",
+      "kind": "work",
+      "title": "Choose and trace the flows",
+      "description": "Find entrypoints and follow the selected interactions.",
+      "agent": "Architecture Scout",
+      "interaction": "automatic",
+      "prompt": "Start an interaction and code-decision review for the Node.js repository requested by the user. Resolve the target from the request, Git roots, package.json and workspace manifests; the session may contain multiple repositories or a monorepo. If ambiguous, ask which target to review. Record session root, repo/package roots, branch, HEAD, dirty files, requested scope and budget. Read applicable instructions, README, package scripts and relevant established decisions. Choose a new report directory under docs/reviews/journey-lens/ at the session project root, named <repo directory>-<UTC timestamp>-<short unique suffix>, or use the user's requested location. Never place it inside the reviewed repository or any other repository directory of the session: the workflow engine commits files a step writes onto that repository's checked-out branch, so a report there ships with the next pull request. If the session root is itself inside the reviewed repository (an app at the workspace root), use dazl-qa/reviews/journey-lens/ instead, which Dazl keeps out of Git. Preserve existing reports and reuse this directory on retries. Record its session-relative path in inventory.md and in the handoff. QL is unavailable; use built-in search and source reads. Use flows explicitly named by the user. Otherwise infer up to three representative critical flows from the README, entrypoints and tests: user journeys for a UI, requests for an API, commands for a CLI, exported operations for a library, or jobs/events for a worker. State the selection before tracing it; do not invent web UI or chat flows. Write inventory.md with selected entrypoints and owners, and traces.md with actual predicates, runtime crossings, state writes, outcomes, failure paths and recovery. Mark unfinished segments and inaccessible external behavior. Pass both files onward.",
+      "position": {
+        "x": 0,
+        "y": 180
+      },
+      "nextStep": "aaac53c4-b501-48e6-870d-74574459cca5"
+    },
+    {
+      "id": "aaac53c4-b501-48e6-870d-74574459cca5",
+      "kind": "work",
+      "title": "Draw the flows",
+      "description": "Show actions, decisions, outcomes and recovery.",
+      "agent": "Flow Cartographer",
+      "interaction": "automatic",
+      "prompt": "Read inventory.md and traces.md, then draft report.md. For each selected flow include a caller/user-level flowchart and corresponding code-decision flowchart with consistent IDs or an explicit mapping. Label actual predicates, outcomes, persistence, errors and recovery; add sequence diagrams when ordering matters. Include source evidence and coverage. Separate verified behavior, inferred intent and proposed improvements.",
+      "position": {
+        "x": 0,
+        "y": 360
+      },
+      "nextStep": "b7d95dc5-e268-4163-a7bd-452cff5135c4"
+    },
+    {
+      "id": "b7d95dc5-e268-4163-a7bd-452cff5135c4",
+      "kind": "work",
+      "title": "Verify the flows",
+      "description": "Check each flow against code and report the gaps.",
+      "agent": "Systems Architect",
+      "interaction": "automatic",
+      "prompt": "Verify and finish Journey Lens for the selected flows only in report.md in the established report directory. Read the artifacts named by earlier stages and resolve material doubts with targeted source reads. Check findings, important diagram edges, source links, coverage and ownership. Validate Mermaid with already-installed tooling if available and report syntax/visual validation separately. Run a focused existing check only when it resolves a material claim; follow the target repo's test guidance and avoid full suites by default. Recheck application-code drift and record which revision/checks support the report; the report files live outside the reviewed repository and are never part of its code. Repair the report without changing application code. Include gaps, checks actually run, prioritized next actions, and the least-confident conclusion with its next check. Mark incomplete requested coverage explicitly. Finish with write_workflow_output pointing to report.md and a concise summary; report tokens only when measured.",
+      "position": {
+        "x": 0,
+        "y": 540
+      }
+    }
+  ]
+}
